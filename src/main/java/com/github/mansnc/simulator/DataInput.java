@@ -15,8 +15,12 @@ public class DataInput {
 
     public static String readFromFile(String filePath) {
         StringBuilder rawDataStream = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(DataInput.class.getResourceAsStream(filePath)))) {
+        // convert bytes to characters.
+        InputStreamReader I_stream = new InputStreamReader(DataInput.class.getResourceAsStream(filePath));
+        // for efficiency reasons, the above line is often wrapped in a BufferedReader.
+        // This reduces the number of IO operations by reading larger chunks at once and
+        // buffering them.
+        try (BufferedReader reader = new BufferedReader(I_stream)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 rawDataStream.append(line).append("\n");
@@ -42,9 +46,9 @@ public class DataInput {
 
     public static void main(String[] args) {
 
-        String userInputConsole = readFromConsole();
-        System.out.println("Here is your input: " + userInputConsole);
-        String filePath = "/tv_in_01.txt";
+        // String userInputConsole = readFromConsole();
+        // System.out.println("Here is your input: " + userInputConsole);
+        String filePath = "/tv_in_02.txt";
         String userInputFile = readFromFile(filePath);
         System.out.println(userInputFile);
         String rawBitStream = convertToBitStream(userInputFile);
