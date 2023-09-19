@@ -2,21 +2,53 @@ package com.github.mansnc.simulator;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Random;
 import java.util.Scanner;
 
 public class DataInput {
 
+    public static void randomBitStreamGenerator(config cfg){
+        
+        int length = cfg.randomDataGen.bitStreamLength;
+
+        StringBuilder randomBitStreamBuilder = new StringBuilder(length);
+        Random ran = new Random();
+        for (int i=0; i<length; i++){
+            randomBitStreamBuilder.append(ran.nextInt(2));
+        }
+       String randomBitStream = randomBitStreamBuilder.toString();
+        System.out.println(randomBitStream.toString());
+        String randDataPath = cfg.randomDataGen.folderPathToStoreData + cfg.randomDataGen.fileName;
+
+        if (cfg.getInput.writeToTextFile){
+            try {
+                Files.write(Paths.get(randDataPath),randomBitStream.getBytes());
+            } catch (Exception e) {
+                System.out.println("Cannot write to file");
+            }
+        }
+
+
+    }
+
     public static String readFromConsole() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Enter your data stream here: ");
+        System.out.print("Enter your text stream here: ");
         String s = sc.nextLine();
         return s;
     }
 
-    public static String readFromFile(String filePath) {
+    public static String readFromFile(config cfg) {
+        String dataPath = cfg.getInput.dataPath;
         StringBuilder rawDataStream = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(DataInput.class.getResourceAsStream(filePath)))) {
+        // convert bytes to characters.
+        InputStreamReader I_stream = new InputStreamReader(DataInput.class.getResourceAsStream(dataPath));
+        // for efficiency reasons, the above line is often wrapped in a BufferedReader.
+        // This reduces the number of IO operations by reading larger chunks at once and
+        // buffering them.
+        try (BufferedReader reader = new BufferedReader(I_stream)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 rawDataStream.append(line).append("\n");
@@ -40,14 +72,17 @@ public class DataInput {
         return rawBitStream.toString();
     }
 
-    public static void main(String[] args) {
-
-        String userInputConsole = readFromConsole();
-        System.out.println("Here is your input: " + userInputConsole);
-        String filePath = "/tv_in_01.txt";
-        String userInputFile = readFromFile(filePath);
-        System.out.println(userInputFile);
-        String rawBitStream = convertToBitStream(userInputFile);
-        System.out.println("Converted raw input to bitstream: " + rawBitStream);
+    public static String getBitStream(config cfg) {
+        String bitStream="";
+        if (cfg.getInput.enableRandomDataGen)
+            randomBitStreamGenerator(cfg);
+        if (cfg.getInput.readFromTextFile)
+            bitStream = readFromFile(cfg);
+        if (cfg.getInput.getFromConsole){
+            String userInputConsole = readFromConsole();
+            bitStream = convertToBitStream(userInputConsole);
+        }
+        
+        return bitStream;
     }
 }
