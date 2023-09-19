@@ -9,7 +9,10 @@ import java.util.Scanner;
 
 public class DataInput {
 
-    public static void randomBitStreamGenerator(int length){
+    public static void randomBitStreamGenerator(config cfg){
+        
+        int length = cfg.randomDataGen.bitStreamLength;
+
         StringBuilder randomBitStreamBuilder = new StringBuilder(length);
         Random ran = new Random();
         for (int i=0; i<length; i++){
@@ -17,23 +20,28 @@ public class DataInput {
         }
        String randomBitStream = randomBitStreamBuilder.toString();
         System.out.println(randomBitStream.toString());
-        String dataPath = "5g-nr-protocol-stack-simulator/src/main/resources/" + "tv_in_ran_01.txt";
-        try {
-            Files.write(Paths.get(dataPath),randomBitStream.getBytes());
-        } catch (Exception e) {
-            System.out.println("Cannot write to file");
+        String randDataPath = cfg.randomDataGen.folderPathToStoreData + cfg.randomDataGen.fileName;
+
+        if (cfg.getInput.writeToTextFile){
+            try {
+                Files.write(Paths.get(randDataPath),randomBitStream.getBytes());
+            } catch (Exception e) {
+                System.out.println("Cannot write to file");
+            }
         }
+
 
     }
 
     public static String readFromConsole() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Enter your data stream here: ");
+        System.out.print("Enter your text stream here: ");
         String s = sc.nextLine();
         return s;
     }
 
-    public static String readFromFile(String dataPath) {
+    public static String readFromFile(config cfg) {
+        String dataPath = cfg.getInput.dataPath;
         StringBuilder rawDataStream = new StringBuilder();
         // convert bytes to characters.
         InputStreamReader I_stream = new InputStreamReader(DataInput.class.getResourceAsStream(dataPath));
@@ -64,15 +72,17 @@ public class DataInput {
         return rawBitStream.toString();
     }
 
-    public static void main(String[] args) {
-        int bitStreamLength = 100000;
-        randomBitStreamGenerator(bitStreamLength);
-        // String userInputConsole = readFromConsole();
-        // System.out.println("Here is your input: " + userInputConsole);
-        String dataPath = "/tv_in_02.txt";
-        String userInputFile = readFromFile(dataPath);
-        System.out.println(userInputFile);
-        String rawBitStream = convertToBitStream(userInputFile);
-        System.out.println("Converted raw input to bitstream: " + rawBitStream);
+    public static String getBitStream(config cfg) {
+        String bitStream="";
+        if (cfg.getInput.enableRandomDataGen)
+            randomBitStreamGenerator(cfg);
+        if (cfg.getInput.readFromTextFile)
+            bitStream = readFromFile(cfg);
+        if (cfg.getInput.getFromConsole){
+            String userInputConsole = readFromConsole();
+            bitStream = convertToBitStream(userInputConsole);
+        }
+        
+        return bitStream;
     }
 }

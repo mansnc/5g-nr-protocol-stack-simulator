@@ -3,11 +3,13 @@ package com.github.mansnc.simulator;
 public class macLayer {
 
 /////////////////////////////////////////////////////////
-    public static String[] segmentIntoSDUs(String bitStream, int TBS, int HeaderSize){
-
+    public static String[] segmentIntoSDUs(String bitStream, config cfg){
+        int TBS = cfg.mac.TBS;
+        int headerSize = cfg.mac.headerSize;
+        
         if (bitStream!=""){
 
-            int maxMacSDUsize  = TBS - HeaderSize;  // chunk size per PDU
+            int maxMacSDUsize  = TBS - headerSize;  // chunk size per PDU
             int numberOfSDUs = (int) Math.ceil((double)bitStream.length()/maxMacSDUsize); // number of required PDUs
 
             // slicing the bitStream into chunks
@@ -35,7 +37,6 @@ public class macLayer {
 
             //System.out.println(macSDUsList[macSDUsList.length - 1]);
             return macSDUsList;
-
                 }
         else{
             System.out.println("Input is null; no data to be segmented!"); 
@@ -57,12 +58,15 @@ public class macLayer {
             return macSDUsList;
     }
 /////////////////////////////////////////////////////////
-    public static String[] addMacHeaders(String [] macSDUsList, int HeaderSize, String LCID_bits){
+    public static String[] addMacHeaders(String [] macSDUsList, config cfg){
+        int headerSize = cfg.mac.headerSize;
+        String LCID_bits = cfg.mac.LCID_bits;
+
         String[] macPDUsList = new String[macSDUsList.length];;
         for (int i=0; i<macSDUsList.length; i++){
             // convert i to HeaderSized-bits
             String bin_i = Integer.toBinaryString(i); 
-            while(bin_i.length()<HeaderSize){
+            while(bin_i.length()<headerSize){
                 bin_i='0'+bin_i;
             }
             macPDUsList[i] = LCID_bits + bin_i + macSDUsList[i];
@@ -71,51 +75,22 @@ public class macLayer {
         return macPDUsList;
     }
 /////////////////////////////////////////////////////////
-public static String[] getPDUs(){
-        String dataPath = "/tv_in_ran_01.txt";
-        String bitStream = DataInput.readFromFile(dataPath);
-        //System.out.println(bitStream);
-        
-        int TBS = 7000; // Transport Block Size; 
-        // Sub-carrier Spacing (SCS) in kHz	Approx. Max Transport Block Size in bits
-        // 15	            ~7000 to ~10000
-        // 30	            ~14000 to ~20000
-        // 60	            ~28000 to ~40000
-        // 120	            ~50000 to ~100000
-        // 240	            ~100000 to ~200000
-        // 480          	~200000 to ~400000
-        int HeaderSize = 9;
-        String LCID_bits = "01"; // for user data; "10" for control data
-        String[] SDUsList = segmentIntoSDUs(bitStream, TBS, HeaderSize+LCID_bits.length());
-        String[] PDUsList = addMacHeaders(SDUsList, HeaderSize, LCID_bits); 
+public static String[] getPDUs(String bitStream, config cfg){
+
+        String[] SDUsList = segmentIntoSDUs(bitStream, cfg);
+        String[] PDUsList = addMacHeaders(SDUsList, cfg); 
         return PDUsList;
 }
 
 /////////////////////////////////////////////////////////
     public static void main(String args[]){
 
-        // String dataPath = "/tv_in_01.txt";
-        // String rawData = DataInput.readFromFile(dataPath);
-        // String bitStream = DataInput.convertToBitStream(rawData);
-        // System.out.println(bitStream);
-
-        String dataPath = "/tv_in_ran_01.txt";
-        String bitStream = DataInput.readFromFile(dataPath);
-        System.out.println(bitStream);
-
-
-        int TBS = 7000; // Transport Block Size; 
-        // Sub-carrier Spacing (SCS) in kHz	Approx. Max Transport Block Size in bits
-        // 15	            ~7000 to ~10000
-        // 30	            ~14000 to ~20000
-        // 60	            ~28000 to ~40000
-        // 120	            ~50000 to ~100000
-        // 240	            ~100000 to ~200000
-        // 480          	~200000 to ~400000
-        int HeaderSize = 9;
-        String LCID_bits = "01"; // for user data; "10" for control data
-        String[] SDUsList = segmentIntoSDUs(bitStream, TBS, HeaderSize+LCID_bits.length());
-        String[] PDUsList = addMacHeaders(SDUsList, HeaderSize, LCID_bits); 
+        config cfg = new config();        
+        
+        String bitStream = DataInput.readFromFile(cfg);
+        
+        String[] SDUsList = segmentIntoSDUs(bitStream, cfg);
+        String[] PDUsList = addMacHeaders(SDUsList, cfg); 
 
     }
     
