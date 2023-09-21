@@ -1,5 +1,6 @@
 package com.github.mansnc.simulator;
 
+
 public class config {
     
     public static class Mac{
@@ -34,7 +35,13 @@ public class config {
         int bitStreamLength = 100000; // to be used when random data generation is initiated
     }
 
+
     public Mac mac = new Mac();
     public Input getInput = new Input();
     public randDataGen randomDataGen = new randDataGen();
+    public RLCconfig RLC = new RLCconfig();
+    public RLCconfig getRLC(){ return RLC;}
+    
+
 }
+
